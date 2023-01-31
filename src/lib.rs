@@ -1,11 +1,13 @@
 #![no_std]
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
+#![feature(abi_x86_interrupt)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
 
+pub mod interrupts;
 pub mod serial;
 pub mod vga_buffer;
 
@@ -45,6 +47,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 #[no_mangle] // この関数の名前をマングルしない
 pub extern "C" fn _start() -> ! {
     // この関数はエントリポイントであるため、 リンカはデフォルトで`_start`という名前の関数を探す
+    init(); // new
     test_main();
 
     loop {}
@@ -74,4 +77,8 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
         let mut port = Port::new(0xf4);
         port.write(exit_code as u32);
     }
+}
+
+pub fn init() {
+    interrupts::init_idt();
 }
