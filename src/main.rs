@@ -8,20 +8,32 @@ use core::panic::PanicInfo;
 
 use blog_os::println;
 
-#[no_mangle]
+#[no_mangle] // don't mangle the name of this function
 pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!");
 
-    blog_os::init(); // new
+    blog_os::init();
 
-    // invoke a breakpoint exception
-    x86_64::instructions::interrupts::int3(); // new
+    #[allow(unconditional_recursion)]
+    fn stack_overflow() {
+        stack_overflow(); // for each recursion, the return address is pushed
+    }
+
+    // trigger a stuck overflow
+    stack_overflow();
+
+    // trigger a page fault
+    unsafe {
+        *(0xdeadbeef as *mut u64) = 42;
+    }
 
     // as before
     #[cfg(test)]
     test_main();
 
     println!("It did not crash!");
+
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 

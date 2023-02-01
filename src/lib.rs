@@ -7,12 +7,13 @@
 
 use core::panic::PanicInfo;
 
+pub mod gdt;
 pub mod interrupts;
 pub mod serial;
 pub mod vga_buffer;
 
 pub trait Testable {
-    fn run(&self) -> ();
+    fn run(&self);
 }
 
 impl<T> Testable for T
@@ -39,6 +40,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
     serial_println!("Error: {}\n", info);
     exit_qemu(QemuExitCode::Failed);
 
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 
@@ -50,6 +52,7 @@ pub extern "C" fn _start() -> ! {
     init(); // new
     test_main();
 
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 
@@ -80,5 +83,6 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 }
 
 pub fn init() {
+    gdt::init();
     interrupts::init_idt();
 }
