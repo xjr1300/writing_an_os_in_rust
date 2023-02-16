@@ -39,9 +39,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
     serial_println!("[failed]\n");
     serial_println!("Error: {}\n", info);
     exit_qemu(QemuExitCode::Failed);
-
-    #[allow(clippy::empty_loop)]
-    loop {}
+    hlt_loop();
 }
 
 /// `cargo test`のエントリ・ポイント
@@ -51,9 +49,7 @@ pub extern "C" fn _start() -> ! {
     // この関数はエントリポイントであるため、 リンカはデフォルトで`_start`という名前の関数を探す
     init(); // new
     test_main();
-
-    #[allow(clippy::empty_loop)]
-    loop {}
+    hlt_loop();
 }
 
 /// パニックが発生したときに呼び出される関数
@@ -85,4 +81,12 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 pub fn init() {
     gdt::init();
     interrupts::init_idt();
+    unsafe { interrupts::PICS.lock().initialize() };
+    x86_64::instructions::interrupts::enable();
+}
+
+pub fn hlt_loop() -> ! {
+    loop {
+        x86_64::instructions::hlt();
+    }
 }

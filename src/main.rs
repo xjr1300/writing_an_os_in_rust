@@ -14,18 +14,18 @@ pub extern "C" fn _start() -> ! {
 
     blog_os::init();
 
-    #[allow(unconditional_recursion)]
-    fn stack_overflow() {
-        stack_overflow(); // for each recursion, the return address is pushed
-    }
+    // #[allow(unconditional_recursion)]
+    // fn stack_overflow() {
+    //     stack_overflow(); // for each recursion, the return address is pushed
+    // }
 
-    // trigger a stuck overflow
-    stack_overflow();
+    // // trigger a stuck overflow
+    // stack_overflow();
 
-    // trigger a page fault
-    unsafe {
-        *(0xdeadbeef as *mut u64) = 42;
-    }
+    // // trigger a page fault
+    // unsafe {
+    //     *(0xdeadbeef as *mut u64) = 42;
+    // }
 
     // as before
     #[cfg(test)]
@@ -33,8 +33,7 @@ pub extern "C" fn _start() -> ! {
 
     println!("It did not crash!");
 
-    #[allow(clippy::empty_loop)]
-    loop {}
+    blog_os::hlt_loop();
 }
 
 /// テスト・モードで使用するパニック・ハンドラ
@@ -42,8 +41,7 @@ pub extern "C" fn _start() -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-
-    loop {}
+    blog_os::hlt_loop();
 }
 
 /// テスト・モードで使用するパニック・ハンドラ
