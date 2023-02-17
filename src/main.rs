@@ -14,6 +14,11 @@ pub extern "C" fn _start() -> ! {
 
     blog_os::init();
 
+    use x86_64::registers::control::Cr3;
+
+    let (level_4_page_table, _) = Cr3::read();
+    println!("Lavel 4 page table at: {:?}", level_4_page_table);
+
     // #[allow(unconditional_recursion)]
     // fn stack_overflow() {
     //     stack_overflow(); // for each recursion, the return address is pushed
@@ -27,12 +32,30 @@ pub extern "C" fn _start() -> ! {
     //     *(0xdeadbeef as *mut u64) = 42;
     // }
 
+    // new
+    // let ptr = 0xdeadbeaf as *mut u32;
+
+    // Note: The actual address might be different for you. Use the address that
+    // your page fault handler reports.
+    let ptr = 0x2031b2 as *mut u32;
+
+    // read from a code page
+    unsafe {
+        let _x = *ptr;
+    }
+    println!("read worked");
+
+    // write to a code page
+    unsafe {
+        *ptr = 42;
+    }
+    println!("write worked");
+
     // as before
     #[cfg(test)]
     test_main();
 
     println!("It did not crash!");
-
     blog_os::hlt_loop();
 }
 
